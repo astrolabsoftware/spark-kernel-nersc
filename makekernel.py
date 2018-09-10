@@ -142,7 +142,7 @@ def create_kernel(path, startupname, kernelname, spark_version, pyspark_args):
 
         # Need to include py4j library
         print('    "PYTHONPATH":', file=f)
-        print('    "{}/python,{}/python/lib/py4j-0.10.4-src.zip",'.format(
+        print('    "{}/python:{}/python/lib/py4j-0.10.4-src.zip",'.format(
             spark_path, spark_path), file=f)
 
         # Version of Python. Only work for 3.5 for the moment.
