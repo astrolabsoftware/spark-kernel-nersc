@@ -35,11 +35,11 @@ The following variables will be set:
 You can choose Spark version 2.0.0 or 2.1.0 (later version are dealt with shifter
 and support will come later). We support only Python 3.5 for the moment.
 
-## Play with Apache Spark JupyterLab
+## JupyterLab: play with Apache Spark
 
 Connect to https://jupyter-dev.nersc.gov/hub/login and create a notebook with
 the kernel you just created:
 
-<p align="center"><img width="400" src="https://github.com/astrolabsoftware/spark-kernel-nersc/raw/master/pic/load_kernel.png"/> </p>
+<p align="center"><img width="600" src="https://github.com/astrolabsoftware/spark-kernel-nersc/raw/master/pic/load_kernel.png"/> </p>
 
-<p align="center"><img width="400" src="https://github.com/astrolabsoftware/spark-kernel-nersc/raw/master/pic/spark_notebook.png"/> </p>
+<p align="center"><img width="600" src="https://github.com/astrolabsoftware/spark-kernel-nersc/raw/master/pic/spark_notebook.png"/> </p>
