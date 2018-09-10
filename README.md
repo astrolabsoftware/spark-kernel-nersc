@@ -1,4 +1,4 @@
-# Spark kernel for Cori@NERSC
+# Apache Spark kernel for Cori@NERSC
 
 ## Create a kernel
 
