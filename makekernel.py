@@ -5,6 +5,7 @@ Script to generate Jupyter kernels to use Apache Spark at NERSC
 Author: Julien Peloton, peloton@lal.in2p3.fr
 """
 import os
+import stat
 import argparse
 
 def safe_mkdir(path, verbose=False):
@@ -66,6 +67,9 @@ def create_startup_file(path, spark_version):
         print('module load spark/{}'.format(spark_version), file=f)
         print('start-all.sh', file=f)
         print('{} -m ipykernel $@'.format(pythonpath), file=f)
+
+    # Chnage permission to rwx for the user
+    os.chmod(filename, stat.S_IRWXU)
 
     return filename
 
