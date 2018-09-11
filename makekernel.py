@@ -182,6 +182,10 @@ def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
     software_path = "/usr/local/bin/"
     spark_path = "{}/spark-{}".format(software_path, spark_version)
 
+    # To store temporary files
+    volume = "/global/cscratch1/sd/{}/tmpfiles".format(os.environ["USER"])
+    safe_mkdir(volume, True)
+
     filename = os.path.join(path, 'kernel.json')
 
     with open(filename, 'w') as f:
@@ -200,7 +204,8 @@ def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
         # Run Spark inside of Shifter
         print('    "shifter",', file=f)
         print('    "--image=nersc/spark-{}:v1",'.format(spark_version), file=f)
-        print('    "--volume=\\"/global/cscratch1/sd/peloton/tmpfiles:/tmp:perNodeCache=size=200G\\"",', file=f)
+        print('    "--volume=\\"{}:/tmp:perNodeCache=size=200G\\"",'.format(
+            volume), file=f)
         print('    "/root/anaconda3/bin/python",', file=f)
 
         # Other required args to start the kernel
