@@ -60,7 +60,7 @@ We support only Python 3.5 for the moment.
 Pyspark most common arguments include:
 
 - `--master local[ncpu]`: the number of CPU to use.
-- `--conf spark.eventLog.enabled=true`, `--conf spark.eventLog.dir=<file:/dir>`, `--conf spark.history.fs.logDirectory=<file:/dir`: store the logs. By default Spark will put event logs in `file:/dir = file://$SCRATCH/spark/spark_event_logs`, and you will need to create this directory the very first time you start up Spark.
+- `--conf spark.eventLog.enabled=true` `--conf spark.eventLog.dir=<file:/dir>` `--conf spark.history.fs.logDirectory=<file:/dir`: store the logs. By default Spark will put event logs in `file:/dir = file://$SCRATCH/spark/spark_event_logs`, and you will need to create this directory the very first time you start up Spark.
 - `--packages ...`: Any package you want to use. For example, you can try out the great [spark-fits](https://github.com/astrolabsoftware/spark-fits) connector using `--packages com.github.astrolabsoftware:spark-fits_2.11:0.6.0`!
 
 ## JupyterLab: play with Apache Spark
@@ -112,3 +112,7 @@ rm -r metastore_db
 ```
 
 Then restart your kernel, and all should be fine.
+
+## Thanks to
+
+- The NERSC consulting and support team for their great help!
