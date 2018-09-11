@@ -1,10 +1,8 @@
 # Apache Spark kernel for Cori@NERSC
 
-## Create a kernel
+## The kernels
 
-Create custom jupyter kernels for using pyspark notebooks at NERSC.
-
-Log on Cori@NERSC, and run the script makekernel.py to create a kernel
+Log on Cori@NERSC, and run the script makekernel.py to create a Jupyter kernel for using pyspark in notebooks at NERSC:
 
 ```
 $ python makekernel.py --help
@@ -34,15 +32,16 @@ optional arguments:
                         kernel folder. Default is False.
 ```
 
+The kernel will be stored at `$HOME/.ipython/kernels/`.
+
 ### Apache Spark version 2.3.0+ (recommended)
 
-For Spark version 2.3.0+, Spark is ran inside of Shifter, and the startup file is not
-necessary. The kernel will be stored at `$HOME/.ipython/kernels/`.
-In addition, the directory `/global/cscratch1/sd/<user>/tmpfiles` will be created (if not) to store temporary files used by Spark.
+For Spark version 2.3.0+, Spark ran inside of Shifter.
+Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to store temporary files used by Spark.
 
 ### Apache Spark version <= 2.1.0 (old)
 
-For Spark version <= 2.1.0, a startup script will be created,
+For Spark version <= 2.1.0, a startup script will be created in addition to the kernel,
 in order to load the Spark module and launch a Spark cluster before launching the notebook:
 
 ```bash
@@ -52,7 +51,7 @@ start-all.sh
 /usr/common/software/python/3.5-anaconda/bin/python -m ipykernel $@
 ```
 
-The kernel and the startup scripts will be stored at `$HOME/.ipython/kernels/`.
+The startup scripts will be stored with the kernel at `$HOME/.ipython/kernels/`.
 We support only Python 3.5 for the moment.
 
 ### Pyspark arguments
@@ -60,10 +59,38 @@ We support only Python 3.5 for the moment.
 Pyspark most common arguments include:
 
 - `--master local[ncpu]`: the number of CPU to use.
-- `--conf spark.eventLog.enabled=true` `--conf spark.eventLog.dir=<file:/dir>` `--conf spark.history.fs.logDirectory=<file:/dir`: store the logs. By default Spark will put event logs in `file:/dir = file://$SCRATCH/spark/spark_event_logs`, and you will need to create this directory the very first time you start up Spark.
+- `--conf spark.eventLog.enabled=true` `--conf spark.eventLog.dir=<file:/dir>` `--conf spark.history.fs.logDirectory=<file:/dir>`: store the logs. By default Spark will put event logs in `file://$SCRATCH/spark/spark_event_logs`, and you will need to create this directory the very first time you start up Spark.
 - `--packages ...`: Any package you want to use. For example, you can try out the great [spark-fits](https://github.com/astrolabsoftware/spark-fits) connector using `--packages com.github.astrolabsoftware:spark-fits_2.11:0.6.0`!
 
-## JupyterLab: play with Apache Spark
+### Access the logs from the Spark UI
+
+Once your job is terminated, you can have access to the log via the Spark history UI. Log on Cori, and load the spark/history module:
+
+```
+module load spark/history
+```
+
+Then go to the folder where the logs are stored, and launch the history server and follow the URL:
+
+```
+# This is the default location
+cd $SCRATCH/spark/spark_event_logs
+./run_history_server.sh
+```
+
+Once you are done, just stop the server by executing `./run_history_server.sh --stop`. 
+
+### Note concerning resources
+    
+    The large-memory login node used by https://jupyter-dev.nersc.gov/
+    is a shared resource, so please be careful not to use too many CPUs
+    or too much memory.
+
+    That means avoid using `--master local[*]` in your kernel, but limit
+    the resources to a few core. Typically `--master local[4]` is enough for
+    prototyping a program.
+
+## Use pyspark in JupyterLab
 
 Connect to https://jupyter-dev.nersc.gov/hub/login and create a notebook with
 the kernel you just created:
