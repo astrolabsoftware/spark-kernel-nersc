@@ -7,6 +7,7 @@ Author: Julien Peloton, peloton@lal.in2p3.fr
 import os
 import stat
 import argparse
+import errno
 
 def safe_mkdir(path, verbose=False):
     """
@@ -16,8 +17,8 @@ def safe_mkdir(path, verbose=False):
     ----------
     path : string
         Name of the folder to be created (can be full path).
-    verbose : bool
-        If True, print messages about the status.
+    verbose : bool, optional
+        If True, print messages about the status. Default is False.
 
     Examples
     ----------
@@ -68,7 +69,7 @@ def create_startup_file(path, spark_version):
         print('start-all.sh', file=f)
         print('{} -m ipykernel $@'.format(pythonpath), file=f)
 
-    # Chnage permission to rwx for the user
+    # Change permission to rwx for the user
     os.chmod(filename, stat.S_IRWXU)
 
     return filename
@@ -182,11 +183,16 @@ def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
     software_path = "/usr/local/bin/"
     spark_path = "{}/spark-{}".format(software_path, spark_version)
 
-    # To store temporary files
-    volume = "/global/cscratch1/sd/{}/tmpfiles".format(os.environ["USER"])
-    safe_mkdir(volume, True)
-
     filename = os.path.join(path, 'kernel.json')
+
+    # Folder to store temporary files
+    if ("SCRATCH" in os.environ):
+        scratch = os.environ["SCRATCH"]
+    else:
+        scratch = path
+    tmpfolder = "{}/tmpfiles".format(scratch)
+
+    safe_mkdir(tmpfolder, True)
 
     with open(filename, 'w') as f:
         print('{', file=f)
@@ -205,7 +211,7 @@ def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
         print('    "shifter",', file=f)
         print('    "--image=nersc/spark-{}:v1",'.format(spark_version), file=f)
         print('    "--volume=\\"{}:/tmp:perNodeCache=size=200G\\"",'.format(
-            volume), file=f)
+            tmpfolder), file=f)
         print('    "/root/anaconda3/bin/python",', file=f)
 
         # Other required args to start the kernel
@@ -322,11 +328,15 @@ if __name__ == "__main__":
     safe_mkdir(path, verbose=True)
 
     if args.spark_version <= "2.1.0":
+        # Startup file to load the Spark module
         startup_fn = create_startup_file(path, args.spark_version)
+
+        # Create the kernel
         create_standard_kernel(
             path, startup_fn, args.kernelname,
             args.spark_version, args.pyspark_args)
     else:
+        # Create the kernel
         create_shifter_kernel(
             path, args.kernelname, args.spark_version, args.pyspark_args)
 
