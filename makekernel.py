@@ -74,9 +74,12 @@ def create_startup_file(path, spark_version):
     return filename
 
 
-def create_kernel(path, startupname, kernelname, spark_version, pyspark_args):
+def create_standard_kernel(
+        path, startupname, kernelname,
+        spark_version, pyspark_args):
     """
     Create a JSON file with the kernel properties.
+    Suitable for Spark versions ran using modules (<= 2.1.0 - deprecated).
 
     Parameters
     ----------
@@ -155,6 +158,94 @@ def create_kernel(path, startupname, kernelname, spark_version, pyspark_args):
         print('  }', file=f)
         print('}', file=f)
 
+def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
+    """
+    Create a JSON file with the kernel properties.
+    Suitable for Spark versions ran inside of shifter (2.3.0+).
+
+    Parameters
+    ----------
+    path : str
+        Where to store the kernel file
+    kernelname : str
+        Name of the kernel (will be displayed on the UI).
+    spark_version: str
+        Apache Spark version. Only shifter versions are supported, that is
+        version 2.3.0+.
+    pyspark_args: str
+        Extra arguments to pass to pyspark. Typically:
+        --master local[n] --packages <> --jars <>
+        See https://spark.apache.org/docs/latest/submitting-applications.html
+        for more information.
+    """
+    # Software path inside of Shifter
+    software_path = "/usr/local/bin/"
+    spark_path = "{}/spark-{}".format(software_path, spark_version)
+
+    # To store temporary files
+    volume = "/global/cscratch1/sd/{}/tmpfiles".format(os.environ["USER"])
+    safe_mkdir(volume, True)
+
+    filename = os.path.join(path, 'kernel.json')
+
+    with open(filename, 'w') as f:
+        print('{', file=f)
+
+        # Displayed name of the cluster
+        print('  "display_name": "{} ({})",'.format(
+            kernelname, spark_version), file=f)
+
+        # Kernel language is Python
+        print('  "language": "python",', file=f)
+
+        # Startup args
+        print('  "argv": [', file=f)
+
+        # Run Spark inside of Shifter
+        print('    "shifter",', file=f)
+        print('    "--image=nersc/spark-{}:v1",'.format(spark_version), file=f)
+        print('    "--volume=\\"{}:/tmp:perNodeCache=size=200G\\"",'.format(
+            volume), file=f)
+        print('    "/root/anaconda3/bin/python",', file=f)
+
+        # Other required args to start the kernel
+        print('    "-m",', file=f)
+        print('    "ipykernel",', file=f)
+        print('    "-f",', file=f)
+        print('    "{connection_file}"', file=f)
+        print('  ],', file=f)
+
+        # Environment
+        print('  "env": {', file=f)
+
+        # Spark installation path
+        print('    "SPARK_HOME": "{}",'.format(spark_path), file=f)
+
+        # Arguments to be passed to pyspark
+        print('    "PYSPARK_SUBMIT_ARGS": ', file=f)
+
+        # --> Resources
+        print('    "{} pyspark-shell",'.format(pyspark_args), file=f)
+
+        # Pyspark startup shell script
+        print('    "PYTHONSTARTUP": "{}/python/pyspark/shell.py",'.format(
+            spark_path), file=f)
+
+        # Need to include py4j library
+        print('    "PYTHONPATH":', file=f)
+        print('    "{}/python:{}/python/lib/py4j-0.10.4-src.zip",'.format(
+            spark_path, spark_path), file=f)
+
+        # Version of Python. Only work for 3.5 for the moment.
+        print('    "PYSPARK_PYTHON": "/root/anaconda3/bin/python",', file=f)
+
+        # Ipython driver
+        print('    "PYSPARK_DRIVER_PYTHON": "ipython3",', file=f)
+
+        print('    "JAVA_HOME": "/usr"', file=f)
+
+        print('  }', file=f)
+        print('}', file=f)
 
 def addargs(parser):
     """ Parse command line arguments for spark-kernel-nersc """
@@ -165,19 +256,20 @@ def addargs(parser):
 
     parser.add_argument(
         '-spark_version', dest='spark_version',
-        default="2.1.0",
+        default="2.3.0",
         help="""
-        Version of Apache Spark. Currently, only version
-        2.0.0 and 2.1.0 are supported. Default is 2.1.0.
+        Version of Apache Spark. Available: 2.0.0, 2.1.0, 2.3.0.
+        Note that 2.0.0, and 2.1.0 are standard kernels, while 2.3.0 makes use
+        of shifter to run. Default is 2.3.0.
         """)
 
     parser.add_argument(
         '-pyspark_args', dest='pyspark_args',
-        default="--master local[*]",
+        default="--master local[4]",
         help="""
         Submission arguments for pyspark.
         See https://spark.apache.org/docs/latest/submitting-applications.html
-        for more information. Default is "--master local[*]".
+        for more information. Default is "--master local[4]".
         """)
 
     parser.add_argument(
@@ -201,6 +293,19 @@ if __name__ == "__main__":
     addargs(parser)
     args = parser.parse_args(None)
 
+    msg = """
+    Note:
+    ----------------
+    The large-memory login node used by https://jupyter-dev.nersc.gov/
+    is a shared resource, so please be careful not to use too many CPUs
+    or too much memory.
+
+    That means do not specify `--master local[*]` in your kernel, but limit
+    the resource to a few core. Typically `--master local[4]` is enough for
+    prototyping a program.
+    """
+    print(msg)
+
     # Grab $HOME path
     HOME = os.environ['HOME']
 
@@ -216,9 +321,13 @@ if __name__ == "__main__":
     # and store the kernel + the startup script
     safe_mkdir(path, verbose=True)
 
-    startup_fn = create_startup_file(path, args.spark_version)
-    create_kernel(
-        path, startup_fn, args.kernelname,
-        args.spark_version, args.pyspark_args)
+    if args.spark_version <= "2.1.0":
+        startup_fn = create_startup_file(path, args.spark_version)
+        create_standard_kernel(
+            path, startup_fn, args.kernelname,
+            args.spark_version, args.pyspark_args)
+    else:
+        create_shifter_kernel(
+            path, args.kernelname, args.spark_version, args.pyspark_args)
 
     print("Kernel stored at {}".format(path))
