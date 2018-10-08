@@ -263,7 +263,7 @@ def create_shifter_kernel(
 
         # Need to include py4j library
         print('    "PYTHONPATH":', file=f)
-        print('    "{}/python:{}/python/lib/py4j-0.10.4-src.zip",'.format(
+        print('    "{}/python:{}/python/lib/py4j-0.10.6-src.zip",'.format(
             spark_path, spark_path), file=f)
 
         # Version of Python. Only work for 3.5 for the moment.
