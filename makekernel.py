@@ -228,7 +228,7 @@ def create_shifter_kernel(
         print('    "shifter",', file=f)
 
         if shifter_image:
-            print('    "{}",'.format(shifter_image), file=f)
+            print('    "--image={}",'.format(shifter_image), file=f)
         else:
             print(
                 '    "--image=nersc/spark-{}:v1",'.format(spark_version),
