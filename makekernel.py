@@ -88,7 +88,6 @@ def create_startup_file(path, spark_version):
 
     return filename
 
-
 def create_standard_kernel(
         path, startupname, kernelname,
         spark_version, pyspark_args):
@@ -173,7 +172,8 @@ def create_standard_kernel(
         print('  }', file=f)
         print('}', file=f)
 
-def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
+def create_shifter_kernel(
+        path, kernelname, spark_version, pyspark_args, shifter_image=None):
     """
     Create a JSON file with the kernel properties.
     Suitable for Spark versions ran inside of shifter (2.3.0+).
@@ -186,12 +186,15 @@ def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
         Name of the kernel (will be displayed on the UI).
     spark_version: str
         Apache Spark version. Only shifter versions are supported, that is
-        version 2.3.0+.
+        version 2.3.0+. If shifter_image is set, this option has no effect.
     pyspark_args: str
         Extra arguments to pass to pyspark. Typically:
         --master local[n] --packages <> --jars <>
         See https://spark.apache.org/docs/latest/submitting-applications.html
         for more information.
+    shifter_image : None or str
+        If not None, the name of the user-defined shifter image to load.
+        Default is None. Bypass the spark_version option.
     """
     # Software path inside of Shifter
     software_path = "/usr/local/bin/"
@@ -223,7 +226,14 @@ def create_shifter_kernel(path, kernelname, spark_version, pyspark_args):
 
         # Run Spark inside of Shifter
         print('    "shifter",', file=f)
-        print('    "--image=nersc/spark-{}:v1",'.format(spark_version), file=f)
+
+        if shifter_image:
+            print('    "{}",'.format(shifter_image), file=f)
+        else:
+            print(
+                '    "--image=nersc/spark-{}:v1",'.format(spark_version),
+                file=f)
+
         print('    "--volume=\\"{}:/tmp:perNodeCache=size=200G\\"",'.format(
             tmpfolder), file=f)
         print('    "/root/anaconda3/bin/python",', file=f)
@@ -281,6 +291,16 @@ def addargs(parser):
         Version of Apache Spark. Available: 2.0.0, 2.1.0, 2.3.0.
         Note that 2.0.0, and 2.1.0 are standard kernels, while 2.3.0 makes use
         of shifter to run. Default is 2.3.0.
+        This option has no effect if `-shifter_image` is provided.
+        """)
+
+    parser.add_argument(
+        '-shifter_image', dest='shifter_image',
+        default=None,
+        help="""
+        Custom shifter image with Spark plus additional dependencies.
+        See the README of this repo for more information. Default is None.
+        This option automatically bypasses `-spark_version`.
         """)
 
     parser.add_argument(
@@ -341,7 +361,16 @@ if __name__ == "__main__":
     # and store the kernel + the startup script
     safe_mkdir(path, verbose=True)
 
-    if args.spark_version <= "2.1.0":
+    valid = True
+    if args.shifter_image is not None:
+        print("Loading custom shifter image...")
+
+        # Create the kernel
+        create_shifter_kernel(
+            path, args.kernelname, args.spark_version,
+            args.pyspark_args, args.shifter_image)
+
+    elif args.spark_version <= "2.1.0":
         # Startup file to load the Spark module
         startup_fn = create_startup_file(path, args.spark_version)
 
@@ -349,9 +378,17 @@ if __name__ == "__main__":
         create_standard_kernel(
             path, startup_fn, args.kernelname,
             args.spark_version, args.pyspark_args)
-    else:
+    elif args.spark_version == "2.3.0":
         # Create the kernel
         create_shifter_kernel(
-            path, args.kernelname, args.spark_version, args.pyspark_args)
+            path, args.kernelname, args.spark_version,
+            args.pyspark_args, None)
+    else:
+        print("""
+    Kernel type not understood! Nothing has been created.
+    Run `python makekernel.py --help` for more information on inputs.
+              """)
+        valid = False
 
-    print("Kernel stored at {}".format(path))
+    if valid:
+        print("Kernel stored at {}".format(path))

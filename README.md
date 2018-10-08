@@ -9,6 +9,7 @@ $ python makekernel.py --help
 
 usage: makekernel.py [-h] -kernelname KERNELNAME
                      [-spark_version SPARK_VERSION]
+                     [-shifter_image SHIFTER_IMAGE]
                      [-pyspark_args PYSPARK_ARGS] [--local]
 
 Create Jupyter kernels for using Apache Spark at NERSC
@@ -21,7 +22,13 @@ optional arguments:
                         Version of Apache Spark. Available: 2.0.0, 2.1.0,
                         2.3.0. Note that 2.0.0, and 2.1.0 are standard
                         kernels, while 2.3.0 makes use of shifter to run.
-                        Default is 2.3.0.
+                        Default is 2.3.0. This option has no effect if
+                        `-shifter_image` is provided.
+  -shifter_image SHIFTER_IMAGE
+                        Custom shifter image with Spark plus additional
+                        dependencies. See the README of this repo for more
+                        information. Default is None. This option
+                        automatically bypasses `-spark_version`.
   -pyspark_args PYSPARK_ARGS
                         Submission arguments for pyspark. See
                         https://spark.apache.org/docs/latest/submitting-
@@ -32,16 +39,33 @@ optional arguments:
                         kernel folder. Default is False.
 ```
 
-The kernel will be stored at `$HOME/.ipython/kernels/`.
+The kernel will be stored at `$HOME/.ipython/kernels/`. More information on how to use Apache Spark at NERSC can be found at this [page](http://www.nersc.gov/users/data-analytics/data-analytics-2/spark-distributed-analytic-framework/).
 
-### Apache Spark version 2.3.0+ (recommended)
+### Apache Spark version 2.3.0+ (recommended for beginners)
 
 For Spark version 2.3.0+, Spark ran inside of Shifter.
 Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to store temporary files used by Spark.
 
+### Custom shifter images (recommended for experienced users)
+
+For Spark version 2.3.0+, Spark ran inside of [Shifter](http://www.nersc.gov/research-and-development/user-defined-images/) (Docker for HPC). Since you are inside an image,
+you do not have automatically access to your user-defined environment.
+Therefore you might want to create your Spark shifter image, based on the one NERSC
+provides, but with additional packages you need installed.
+The basic information on how to create a Shifter image at NERSC can be found [here](https://docs.nersc.gov/development/shifter/how-to-use/). The very first line
+of your DockerFile just needs to be:
+
+```
+FROM nersc/spark-2.3.0:v1
+
+# put here all the packages and dependencies
+# you need to have to run your pyspark jobs
+```
+
 ### Apache Spark version <= 2.1.0 (old)
 
-For Spark version <= 2.1.0, a startup script will be created in addition to the kernel,
+For Spark version <= 2.1.0, Spark is launched inside your environment.
+Therefore a startup script will be created in addition to the kernel,
 in order to load the Spark module and launch a Spark cluster before launching the notebook:
 
 ```bash
@@ -78,10 +102,10 @@ cd $SCRATCH/spark/spark_event_logs
 ./run_history_server.sh
 ```
 
-Once you are done, just stop the server by executing `./run_history_server.sh --stop`. 
+Once you are done, just stop the server by executing `./run_history_server.sh --stop`.
 
 ### Note concerning resources
-    
+
     The large-memory login node used by https://jupyter-dev.nersc.gov/
     is a shared resource, so please be careful not to use too many CPUs
     or too much memory.
@@ -110,25 +134,25 @@ Py4JJavaError                             Traceback (most recent call last)
 ---> 63             return f(*a, **kw)
      64         except py4j.protocol.Py4JJavaError as e:
 
-/usr/local/bin/spark-2.3.0/python/lib/py4j-0.10.6-src.zip/py4j/protocol.py in 
+/usr/local/bin/spark-2.3.0/python/lib/py4j-0.10.6-src.zip/py4j/protocol.py in
 get_return_value(answer, gateway_client, target_id, name)
     319                     "An error occurred while calling {0}{1}{2}.\n".
 --> 320                     format(target_id, ".", name), value)
     321             else:
 
 Py4JJavaError: An error occurred while calling o83.load.
-: org.apache.spark.sql.AnalysisException: java.lang.RuntimeException: 
-java.lang.RuntimeException: Unable to instantiate 
+: org.apache.spark.sql.AnalysisException: java.lang.RuntimeException:
+java.lang.RuntimeException: Unable to instantiate
 org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient;
-	at 
+	at
 org.apache.spark.sql.hive.HiveExternalCatalog.withClient(
 HiveExternalCatalog.scala:106)
-	at 
-	
+	at
+
 	... (long... very long)
-	
+
 AnalysisException: 'java.lang.RuntimeException: java.lang.RuntimeException:
-Unable to instantiate 
+Unable to instantiate
 org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClient;'
 ```
 
