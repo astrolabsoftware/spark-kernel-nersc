@@ -53,7 +53,7 @@ just launch:
 
 ```
 python makekernel.py \
-  -kernelname desc-spark2 \
+  -kernelname desc-pyspark \
   --desc -pyspark_args "--master local[4] \
   --packages com.github.astrolabsoftware:spark-fits_2.11:0.6.0 \
   --conf spark.eventLog.enabled=true \
@@ -61,7 +61,7 @@ python makekernel.py \
   --conf spark.history.fs.logDirectory=file://$SCRATCH/spark/event_logs"
 ```
 
-And then select the kernel `desc-spark` in the JupyerLab interface.
+And then select the kernel `desc-pyspark` in the JupyerLab interface.
 Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to store temporary files used by Spark.
 
 **Note**
