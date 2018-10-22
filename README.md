@@ -55,7 +55,7 @@ just launch:
 python makekernel.py \
   -kernelname desc-pyspark \
   --desc -pyspark_args "--master local[4] \
-  --packages com.github.astrolabsoftware:spark-fits_2.11:0.6.0 \
+  --packages com.github.astrolabsoftware:spark-fits_2.11:0.7.1 \
   --conf spark.eventLog.enabled=true \
   --conf spark.eventLog.dir=file://$SCRATCH/spark/event_logs \
   --conf spark.history.fs.logDirectory=file://$SCRATCH/spark/event_logs"
