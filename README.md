@@ -7,7 +7,7 @@ Log on Cori@NERSC, and run the script makekernel.py to create a Jupyter kernel f
 ```
 $ python makekernel.py --help
 
-usage: makekernel.py [-h] -kernelname KERNELNAME
+usage: makekernel.py [-h] -kernelname KERNELNAME [--desc]
                      [-spark_version SPARK_VERSION]
                      [-shifter_image SHIFTER_IMAGE]
                      [-pyspark_args PYSPARK_ARGS] [--local]
@@ -18,17 +18,22 @@ optional arguments:
   -h, --help            show this help message and exit
   -kernelname KERNELNAME
                         Name of the Jupyter kernel to be displayed
+  --desc                If specified, create a kernel containing DESC
+                        environment + latest Spark version (2.3.2). Works only
+                        in local mode for Spark (no batch) yet. Bypass:
+                        spark_version, shifter_image
   -spark_version SPARK_VERSION
                         Version of Apache Spark. Available: 2.0.0, 2.1.0,
                         2.3.0. Note that 2.0.0, and 2.1.0 are standard
                         kernels, while 2.3.0 makes use of shifter to run.
                         Default is 2.3.0. This option has no effect if
-                        `-shifter_image` is provided.
+                        `-shifter_image`, or `--desc` are provided.
   -shifter_image SHIFTER_IMAGE
                         Custom shifter image with Spark plus additional
                         dependencies. See the README of this repo for more
                         information. Default is None. This option
-                        automatically bypasses `-spark_version`.
+                        automatically bypasses `-spark_version`. This option
+                        has no effect if `--desc` is provided.
   -pyspark_args PYSPARK_ARGS
                         Submission arguments for pyspark. See
                         https://spark.apache.org/docs/latest/submitting-
@@ -41,7 +46,27 @@ optional arguments:
 
 The kernel will be stored at `$HOME/.ipython/kernels/`. More information on how to use Apache Spark at NERSC can be found at this [page](http://www.nersc.gov/users/data-analytics/data-analytics-2/spark-distributed-analytic-framework/).
 
-### Apache Spark version 2.3.0+ (recommended for beginners)
+### Apache Spark for DESC members (recommended)
+
+Create a kernel with python DESC environment (based on desc-python). On Cori,
+just launch:
+
+```
+python makekernel.py \
+  -kernelname desc-spark2 \
+  --desc -pyspark_args "--master local[4] \
+  --packages com.github.astrolabsoftware:spark-fits_2.11:0.6.0 \
+  --conf spark.eventLog.enabled=true \
+  --conf spark.eventLog.dir=file://$SCRATCH/spark/event_logs \
+  --conf spark.history.fs.logDirectory=file://$SCRATCH/spark/event_logs"
+```
+
+And then select the kernel `desc-spark` in the JupyerLab interface.
+Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to store temporary files used by Spark.
+
+**Note**
+
+### Apache Spark version 2.3.0+ (recommended for beginners dev)
 
 For Spark version 2.3.0+, Spark ran inside of Shifter.
 Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to store temporary files used by Spark.
