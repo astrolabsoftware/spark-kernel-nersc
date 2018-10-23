@@ -64,7 +64,8 @@ python makekernel.py \
 And then select the kernel `desc-pyspark` in the JupyerLab interface.
 Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to store temporary files used by Spark.
 
-**Note**
+**Note** We provide a custom installation of the latest Spark version. This is maintained
+by me (Julien Peloton) at NERSC. If you encounter problems, let me know!
 
 ### Apache Spark version 2.3.0+ (recommended for beginners dev)
 
