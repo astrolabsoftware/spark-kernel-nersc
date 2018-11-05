@@ -243,7 +243,7 @@ def create_desc_kernel(path, startupname, kernelname, pyspark_args):
     "SPARK_HOME": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7",
     "PYSPARK_SUBMIT_ARGS": "{} pyspark-shell",
     "PYTHONSTARTUP": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python/pyspark/shell.py",
-    "PYTHONPATH": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python/lib/py4j-0.10.7-src.zip:/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python",
+    "DESCPYTHONPATH": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python/lib/py4j-0.10.7-src.zip:/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python",
     "PYSPARK_PYTHON": "/global/common/software/lsst/common/miniconda/current/bin/python",
     "PYSPARK_DRIVER_PYTHON": "/global/common/software/lsst/common/miniconda/current/bin/ipython3",
     "JAVA_HOME": "/opt/java/jdk1.8.0_51"
