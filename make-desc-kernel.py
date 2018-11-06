@@ -22,7 +22,7 @@ import os
 import stat
 import argparse
 
-from util import safe_mkdir
+from kernel_util import safe_mkdir
 
 def create_desc_startup_file(path):
     """
