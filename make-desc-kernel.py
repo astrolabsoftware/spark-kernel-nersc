@@ -48,7 +48,7 @@ def create_desc_startup_file(path):
 
     startup = """#!/bin/bash
 mkdir -p {}
-/global/common/software/lsst/common/miniconda/kernels/python.sh
+source /global/common/software/lsst/common/miniconda/kernels/python.sh
     """.format(tmpfolder)
 
     with open(filename, 'w') as f:
