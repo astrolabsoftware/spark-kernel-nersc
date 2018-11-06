@@ -42,10 +42,9 @@ def create_desc_startup_file(path):
 
     # Folder to store temporary files
     if ("SCRATCH" in os.environ):
-        scratch = os.environ["SCRATCH"]
+        tmpfolder = "$SCRATCH/tmpfiles"
     else:
-        scratch = path
-    tmpfolder = "{}/tmpfiles".format(scratch)
+        tmpfolder = path
 
     startup = """#!/bin/bash
 mkdir -p {}
