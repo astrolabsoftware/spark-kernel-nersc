@@ -44,7 +44,7 @@ optional arguments:
                         kernel folder. Default is False.
 ```
 
-The kernel will be stored at `$HOME/.ipython/kernels/`. More information on how to use Apache Spark at NERSC can be found at this [page](http://www.nersc.gov/users/data-analytics/data-analytics-2/spark-distributed-analytic-framework/).
+The kernel will be stored at `$HOME/.local/share/jupyter/kernels/`. More information on how to use Apache Spark at NERSC can be found at this [page](http://www.nersc.gov/users/data-analytics/data-analytics-2/spark-distributed-analytic-framework/).
 
 ### Apache Spark for DESC members (recommended)
 
