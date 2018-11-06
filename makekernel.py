@@ -443,9 +443,8 @@ if __name__ == "__main__":
 
     if not args.local:
         # Kernels are stored here
-        # See http://www.nersc.gov/users/data-analytics/
-        # data-analytics-2/jupyter-and-rstudio/
-        path = '{}/.ipython/kernels/{}'.format(HOME, args.kernelname)
+        # See https://jupyter-client.readthedocs.io/en/stable/kernels.html#kernel-specs
+        path = '{}/.local/share/jupyter/kernels/{}'.format(HOME, args.kernelname)
     else:
         path = os.curdir
 
