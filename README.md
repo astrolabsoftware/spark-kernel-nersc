@@ -14,6 +14,7 @@ Create a kernel with python DESC environment (based on `desc-python`) and Apache
 python desc-kernel.py \
   -kernelname desc-python-pyspark \
   -pyspark_args "--master local[4] \
+  --driver-memory 32g --executor-memory 32g \
   --packages com.github.astrolabsoftware:spark-fits_2.11:0.7.1 \
   --conf spark.eventLog.enabled=true \
   --conf spark.eventLog.dir=file://$SCRATCH/spark/event_logs \
