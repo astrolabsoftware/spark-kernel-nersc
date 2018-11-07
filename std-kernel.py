@@ -21,40 +21,8 @@ Author: Julien Peloton, peloton@lal.in2p3.fr
 import os
 import stat
 import argparse
-import errno
 
-def safe_mkdir(path, verbose=False):
-    """
-    Create a folder and catch the race condition between path exists and mkdir.
-
-    Parameters
-    ----------
-    path : string
-        Name of the folder to be created (can be full path).
-    verbose : bool, optional
-        If True, print messages about the status. Default is False.
-
-    Examples
-    ----------
-    Folders are created
-    >>> safe_mkdir('toto/titi/tutu', verbose=True)
-
-    Folders aren't created because they already exist
-    >>> safe_mkdir('toto/titi/tutu', verbose=True)
-    Folders toto/titi/tutu already exist. Not created.
-
-    >>> os.removedirs('toto/titi/tutu')
-    """
-    abspath = os.path.abspath(path)
-    if not os.path.exists(abspath):
-        try:
-            os.makedirs(abspath)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
-    else:
-        if verbose:
-            print("Folders {} already exist. Not created.".format(path))
+from kernel_util import safe_mkdir
 
 def create_startup_file(path, spark_version):
     """
@@ -82,34 +50,6 @@ def create_startup_file(path, spark_version):
         print('module load spark/{}'.format(spark_version), file=f)
         print('start-all.sh', file=f)
         print('{} -m ipykernel $@'.format(pythonpath), file=f)
-
-    # Change permission to rwx for the user
-    os.chmod(filename, stat.S_IRWXU)
-
-    return filename
-
-def create_desc_startup_file(path):
-    """
-    Create a startup file (bash) to load DESC environment
-
-    Parameters
-    ----------
-    path : str
-        Where to store the startup file
-
-    Returns
-    ----------
-    filename: str
-        Returns the startup script filename (with full path)
-    """
-    filename = os.path.join(path, 'start_desc.sh')
-
-    with open(filename, 'w') as f:
-        print('#!/bin/bash', file=f)
-        print('source /global/common/software/lsst/common/miniconda/kernels/setup.sh', file=f)
-        print('INST_DIR=/global/common/software/lsst/common/miniconda', file=f)
-        print('source $INST_DIR/setup_current_python.sh', file=f)
-        print('exec python -m ipykernel $@', file=f)
 
     # Change permission to rwx for the user
     os.chmod(filename, stat.S_IRWXU)
@@ -199,60 +139,6 @@ def create_standard_kernel(
 
         print('  }', file=f)
         print('}', file=f)
-
-def create_desc_kernel(path, startupname, kernelname, pyspark_args):
-    """
-    Create a Kernel file with DESC + Spark env.
-    The Spark version is 2.3.2, maintained by J. Peloton at NERSC.
-
-    Parameters
-    ----------
-    path : str
-        Where to store the kernel file
-    startupname : str
-        Startup script filename (with full path) which load Spark module,
-        and start the cluster. See `create_startup_file`.
-    kernelname : str
-        Name of the kernel (will be displayed on the UI).
-    pyspark_args: str
-        Extra arguments to pass to pyspark. Typically:
-        --master local[n] --packages <> --jars <>
-        See https://spark.apache.org/docs/latest/submitting-applications.html
-        for more information.
-    """
-    # Folder to store temporary files
-    if ("SCRATCH" in os.environ):
-        scratch = os.environ["SCRATCH"]
-    else:
-        scratch = path
-    tmpfolder = "{}/tmpfiles".format(scratch)
-    safe_mkdir(tmpfolder, True)
-
-    # Kernel path + name
-    filename = os.path.join(path, 'kernel.json')
-
-    # Kernel file
-    kernel = """{{
-  "display_name": "{} (2.3.2)",
-  "language": "python",
-  "argv": [
-    "{}",
-    "-f",
-    "{{connection_file}}"],
-  "env": {{
-    "SPARK_HOME": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7",
-    "PYSPARK_SUBMIT_ARGS": "{} pyspark-shell",
-    "PYTHONSTARTUP": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python/pyspark/shell.py",
-    "DESCPYTHONPATH": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python/lib/py4j-0.10.7-src.zip:/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python",
-    "PYSPARK_PYTHON": "/global/common/software/lsst/common/miniconda/current/bin/python",
-    "PYSPARK_DRIVER_PYTHON": "/global/common/software/lsst/common/miniconda/current/bin/ipython3",
-    "JAVA_HOME": "/opt/java/jdk1.8.0_51"
- }}
-}}
-    """.format(kernelname, startupname, pyspark_args)
-
-    with open(filename, 'w') as f:
-        print(kernel, file=f)
 
 def create_shifter_kernel(
         path, kernelname, spark_version, pyspark_args, shifter_image=None):
@@ -367,22 +253,13 @@ def addargs(parser):
         help='Name of the Jupyter kernel to be displayed')
 
     parser.add_argument(
-        '--desc', dest='desc',
-        action="store_true",
-        help="""
-        If specified, create a kernel containing DESC environment + latest
-        Spark version (2.3.2). Works only in local mode for Spark (no batch)
-        yet. Bypass: spark_version, shifter_image
-        """)
-
-    parser.add_argument(
         '-spark_version', dest='spark_version',
         default="2.3.0",
         help="""
         Version of Apache Spark. Available: 2.0.0, 2.1.0, 2.3.0.
         Note that 2.0.0, and 2.1.0 are standard kernels, while 2.3.0 makes use
         of shifter to run. Default is 2.3.0.
-        This option has no effect if `-shifter_image`, or `--desc` are provided.
+        This option has no effect if `-shifter_image` is provided.
         """)
 
     parser.add_argument(
@@ -391,8 +268,7 @@ def addargs(parser):
         help="""
         Custom shifter image with Spark plus additional dependencies.
         See the README of this repo for more information. Default is None.
-        This option automatically bypasses `-spark_version`. This option has
-        no effect if `--desc` is provided.
+        This option automatically bypasses `-spark_version`.
         """)
 
     parser.add_argument(
@@ -416,9 +292,9 @@ def addargs(parser):
 if __name__ == "__main__":
     """ Create Jupyter kernels for using Apache Spark at NERSC
 
-    Launch it using `python makekernel.py <args>`.
+    Launch it using `python std-kernel.py <args>`.
 
-    Run `python makekernel.py --help` for more information on inputs.
+    Run `python std-kernel.py --help` for more information on inputs.
     """
     parser = argparse.ArgumentParser(
         description='Create Jupyter kernels for using Apache Spark at NERSC')
@@ -453,13 +329,7 @@ if __name__ == "__main__":
     safe_mkdir(path, verbose=True)
 
     valid = True
-    if args.desc:
-        startup_fn = create_desc_startup_file(path)
-
-        # Create the kernel
-        create_desc_kernel(
-            path, startup_fn, args.kernelname, args.pyspark_args)
-    elif args.shifter_image is not None:
+    if args.shifter_image is not None:
         print("Loading custom shifter image...")
 
         # Create the kernel
@@ -483,7 +353,7 @@ if __name__ == "__main__":
     else:
         print("""
     Kernel type not understood! Nothing has been created.
-    Run `python makekernel.py --help` for more information on inputs.
+    Run `python std-kernel.py --help` for more information on inputs.
               """)
         valid = False
 
