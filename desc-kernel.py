@@ -40,16 +40,25 @@ def create_desc_startup_file(path):
     """
     filename = os.path.join(path, 'start_desc.sh')
 
-    # Folder to store temporary files
-    if ("SCRATCH" in os.environ):
-        tmpfolder = "$SCRATCH/tmpfiles"
-    else:
-        tmpfolder = path
+    # # Folder to store temporary files
+    # if ("SCRATCH" in os.environ):
+    #     tmpfolder = "$SCRATCH/tmpfiles"
+    # else:
+    #     tmpfolder = path
 
     startup = """#!/bin/bash
-mkdir -p {}
+# Where the Spark logs will be stored
+# Logs can be then be browsed from the Spark UI
+LOGDIR=${SCRATCH}/spark/event_logs
+mkdir -p ${LOGDIR}
+
+# The directory `/global/cscratch1/sd/<user>/tmpfiles` will be created if it
+# does not exist to store temporary files used by Spark.
+mkdir -p ${SCRATCH}/tmpfiles
+
+# desc-python activation script
 source /global/common/software/lsst/common/miniconda/kernels/python.sh
-    """.format(tmpfolder)
+    """
 
     with open(filename, 'w') as f:
         print(startup, file=f)
