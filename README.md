@@ -6,7 +6,7 @@ Log on Cori@NERSC, and run one of the scripts (`std-kernel.py` or `desc-kernel.p
 
 The kernel will be stored at `$HOME/.local/share/jupyter/kernels/`. More information on how to use Apache Spark at NERSC can be found at this [page](http://www.nersc.gov/users/data-analytics/data-analytics-2/spark-distributed-analytic-framework/).
 
-### Apache Spark for DESC members (recommended)
+## Apache Spark for DESC members (recommended)
 
 Create a kernel with python DESC environment (based on `desc-python`) and Apache Spark. On Cori, just launch:
 
@@ -29,6 +29,10 @@ Note that the folders
 will be created if they do not exist to store temporary files and logs used by Spark.
 
 **Note** We provide a custom installation of the latest Spark version (2.3.2). This is maintained by me (Julien Peloton) at NERSC. If you encounter problems, let me know!
+
+## Apache Spark alone
+
+Kernels for running Apache Spark at NERSC are created using `std-kernel.py`.
 
 ### Apache Spark version 2.3.0+ (recommended for beginners dev)
 
