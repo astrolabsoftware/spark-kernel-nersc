@@ -2,70 +2,30 @@
 
 ## The kernels
 
-Log on Cori@NERSC, and run the script makekernel.py to create a Jupyter kernel for using pyspark in notebooks at NERSC:
-
-```
-$ python makekernel.py --help
-
-usage: makekernel.py [-h] -kernelname KERNELNAME [--desc]
-                     [-spark_version SPARK_VERSION]
-                     [-shifter_image SHIFTER_IMAGE]
-                     [-pyspark_args PYSPARK_ARGS] [--local]
-
-Create Jupyter kernels for using Apache Spark at NERSC
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -kernelname KERNELNAME
-                        Name of the Jupyter kernel to be displayed
-  --desc                If specified, create a kernel containing DESC
-                        environment + latest Spark version (2.3.2). Works only
-                        in local mode for Spark (no batch) yet. Bypass:
-                        spark_version, shifter_image
-  -spark_version SPARK_VERSION
-                        Version of Apache Spark. Available: 2.0.0, 2.1.0,
-                        2.3.0. Note that 2.0.0, and 2.1.0 are standard
-                        kernels, while 2.3.0 makes use of shifter to run.
-                        Default is 2.3.0. This option has no effect if
-                        `-shifter_image`, or `--desc` are provided.
-  -shifter_image SHIFTER_IMAGE
-                        Custom shifter image with Spark plus additional
-                        dependencies. See the README of this repo for more
-                        information. Default is None. This option
-                        automatically bypasses `-spark_version`. This option
-                        has no effect if `--desc` is provided.
-  -pyspark_args PYSPARK_ARGS
-                        Submission arguments for pyspark. See
-                        https://spark.apache.org/docs/latest/submitting-
-                        applications.html for more information. Default is "--
-                        master local[4]".
-  --local               If specified, kernel and startup scripts will be dump
-                        on the current working directory instead of the NERSC
-                        kernel folder. Default is False.
-```
+Log on Cori@NERSC, and run one of the scripts (`std-kernel.py` or `desc-kernel.py`) to create a Jupyter kernel for using pyspark in notebooks at NERSC.
 
 The kernel will be stored at `$HOME/.local/share/jupyter/kernels/`. More information on how to use Apache Spark at NERSC can be found at this [page](http://www.nersc.gov/users/data-analytics/data-analytics-2/spark-distributed-analytic-framework/).
 
 ### Apache Spark for DESC members (recommended)
 
-Create a kernel with python DESC environment (based on desc-python). On Cori,
+Create a kernel with python DESC environment (based on `desc-python`). On Cori,
 just launch:
 
 ```
-python makekernel.py \
-  -kernelname desc-pyspark \
-  --desc -pyspark_args "--master local[4] \
+python desc-kernel.py \
+  -kernelname desc-python-pyspark \
+  -pyspark_args "--master local[4] \
   --packages com.github.astrolabsoftware:spark-fits_2.11:0.7.1 \
   --conf spark.eventLog.enabled=true \
   --conf spark.eventLog.dir=file://$SCRATCH/spark/event_logs \
   --conf spark.history.fs.logDirectory=file://$SCRATCH/spark/event_logs"
 ```
 
-And then select the kernel `desc-pyspark` in the JupyerLab interface.
-Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to store temporary files used by Spark.
+And then select the kernel `desc-python-pyspark` in the JupyerLab interface.
+Note that the directory `/global/cscratch1/sd/<user>/tmpfiles` will be created if it
+does not exist to store temporary files used by Spark.
 
-**Note** We provide a custom installation of the latest Spark version. This is maintained
-by me (Julien Peloton) at NERSC. If you encounter problems, let me know!
+**Note** We provide a custom installation of the latest Spark version (2.3.2). This is maintained by me (Julien Peloton) at NERSC. If you encounter problems, let me know!
 
 ### Apache Spark version 2.3.0+ (recommended for beginners dev)
 
@@ -101,7 +61,7 @@ start-all.sh
 /usr/common/software/python/3.5-anaconda/bin/python -m ipykernel $@
 ```
 
-The startup scripts will be stored with the kernel at `$HOME/.ipython/kernels/`.
+The startup scripts will be stored with the kernel at `$HOME/.local/share/jupyter/kernels/`.
 We support only Python 3.5 for the moment.
 
 ### Pyspark arguments
@@ -110,7 +70,7 @@ Pyspark most common arguments include:
 
 - `--master local[ncpu]`: the number of CPU to use.
 - `--conf spark.eventLog.enabled=true` `--conf spark.eventLog.dir=<file:/dir>` `--conf spark.history.fs.logDirectory=<file:/dir>`: store the logs. By default Spark will put event logs in `file://$SCRATCH/spark/spark_event_logs`, and you will need to create this directory the very first time you start up Spark.
-- `--packages ...`: Any package you want to use. For example, you can try out the great [spark-fits](https://github.com/astrolabsoftware/spark-fits) connector using `--packages com.github.astrolabsoftware:spark-fits_2.11:0.6.0`!
+- `--packages ...`: Any package you want to use. For example, you can try out the great [spark-fits](https://github.com/astrolabsoftware/spark-fits) connector using `--packages com.github.astrolabsoftware:spark-fits_2.11:0.7.1`!
 
 ### Access the logs from the Spark UI
 

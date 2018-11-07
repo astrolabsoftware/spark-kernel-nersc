@@ -133,9 +133,9 @@ def addargs(parser):
 if __name__ == "__main__":
     """ Create Jupyter kernels for using desc-python + Apache Spark at NERSC
 
-    Launch it using `python make-desc-kernel.py <args>`.
+    Launch it using `python desc-kernel.py <args>`.
 
-    Run `python make-desc-kernel.py --help` for more information on inputs.
+    Run `python desc-kernel.py --help` for more information on inputs.
     """
     parser = argparse.ArgumentParser(
         description='Create a desc-python-spark kernel to work at NERSC')
