@@ -8,8 +8,7 @@ The kernel will be stored at `$HOME/.local/share/jupyter/kernels/`. More informa
 
 ### Apache Spark for DESC members (recommended)
 
-Create a kernel with python DESC environment (based on `desc-python`). On Cori,
-just launch:
+Create a kernel with python DESC environment (based on `desc-python`) and Apache Spark. On Cori, just launch:
 
 ```
 python desc-kernel.py \
@@ -22,8 +21,12 @@ python desc-kernel.py \
 ```
 
 And then select the kernel `desc-python-pyspark` in the JupyerLab interface.
-Note that the directory `/global/cscratch1/sd/<user>/tmpfiles` will be created if it
-does not exist to store temporary files used by Spark.
+Note that the folders
+
+- `/global/cscratch1/sd/<user>/tmpfiles`
+- `/global/cscratch1/sd/<user>/spark/event_logs`
+
+will be created if they do not exist to store temporary files and logs used by Spark.
 
 **Note** We provide a custom installation of the latest Spark version (2.3.2). This is maintained by me (Julien Peloton) at NERSC. If you encounter problems, let me know!
 
