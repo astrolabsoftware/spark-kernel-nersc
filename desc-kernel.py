@@ -43,7 +43,7 @@ def create_desc_startup_file(path, pyspark_args):
     filename: str
         Returns the startup script filename (with full path)
     """
-    filename = os.path.join(path, 'start_desc.sh')
+    filename = os.path.join(path, 'desc-pyspark.sh')
 
     startup = """#!/bin/bash
 # Where the Spark logs will be stored
