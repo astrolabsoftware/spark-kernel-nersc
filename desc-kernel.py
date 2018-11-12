@@ -59,7 +59,8 @@ mkdir -p ${{SCRATCH}}/tmpfiles
 lSSTCONDA="/global/common/software/lsst/common/miniconda"
 
 # Since the default NERSC Apache Spark runs inside of Shifter, we use
-# a local version of it maintained by Julien Peloton (peloton@lal.in2p3.fr)
+# a custom local version of it. This is maintained by me (Julien Peloton)
+# at NERSC. If you encounter problems, let me know (peloton at lal.in2p3.fr)!
 SPARKPATH="/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7"
 
 # Here is the environment needed for Spark to run at NERSC.
@@ -89,7 +90,7 @@ source ${{lSSTCONDA}}/kernels/python.sh
 
     return filename
 
-def create_desc_kernel(path, startupname, kernelname, pyspark_args):
+def create_desc_kernel(path, startupname, kernelname):
     """
     Create a Kernel file with python DESC + Spark env.
     The Spark version is 2.3.2, maintained by J. Peloton at NERSC.
