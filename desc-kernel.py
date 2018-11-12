@@ -65,7 +65,7 @@ SPARKPATH="/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7"
 
 # Here is the environment needed for Spark to run at NERSC.
 export SPARK_HOME="${{SPARKPATH}}"
-export PYSPARK_SUBMIT_ARGS="{} pyspark-shell"
+export PYSPARK_SUBMIT_ARGS="{} --conf spark.eventLog.enabled=true --conf spark.eventLog.dir=file://${{SCRATCH}}/spark/event_logs --conf spark.history.fs.logDirectory=file://${{SCRATCH}}/spark/event_logs pyspark-shell"
 export PYTHONSTARTUP="${{SPARKPATH}}/python/pyspark/shell.py"
 
 # Make sure the version of py4j is correct.
