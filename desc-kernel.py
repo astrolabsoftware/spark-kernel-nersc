@@ -93,7 +93,7 @@ source ${{lSSTCONDA}}/kernels/python.sh
 def create_desc_kernel(path, startupname, kernelname):
     """
     Create a Kernel file with python DESC + Spark env.
-    The Spark version is 2.3.2, maintained by J. Peloton at NERSC.
+    Maintained by J. Peloton at NERSC.
 
     Parameters
     ----------
@@ -110,7 +110,7 @@ def create_desc_kernel(path, startupname, kernelname):
 
     # Kernel file
     kernel = """{{
-  "display_name": "{} (2.3.2)",
+  "display_name": "{}",
   "language": "python",
   "argv": [
     "{}",
