@@ -115,7 +115,7 @@ def create_desc_kernel(path, startupname, kernelname):
   "argv": [
     "{}",
     "-f",
-    "{{connection_file}}"],
+    "{{connection_file}}"]
 }}
     """.format(kernelname, startupname)
 
