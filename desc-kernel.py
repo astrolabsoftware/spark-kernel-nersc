@@ -24,7 +24,7 @@ import argparse
 
 from kernel_util import safe_mkdir
 
-def create_desc_startup_file(path):
+def create_desc_startup_file(path, pyspark_args):
     """
     Create a startup file (bash) to load DESC environment
 
@@ -32,6 +32,11 @@ def create_desc_startup_file(path):
     ----------
     path : str
         Where to store the startup file
+    pyspark_args: str
+        Extra arguments to pass to pyspark. Typically:
+        --master local[n] --packages <> --jars <>
+        See https://spark.apache.org/docs/latest/submitting-applications.html
+        for more information.
 
     Returns
     ----------
@@ -40,25 +45,41 @@ def create_desc_startup_file(path):
     """
     filename = os.path.join(path, 'start_desc.sh')
 
-    # # Folder to store temporary files
-    # if ("SCRATCH" in os.environ):
-    #     tmpfolder = "$SCRATCH/tmpfiles"
-    # else:
-    #     tmpfolder = path
-
     startup = """#!/bin/bash
 # Where the Spark logs will be stored
 # Logs can be then be browsed from the Spark UI
-LOGDIR=${SCRATCH}/spark/event_logs
-mkdir -p ${LOGDIR}
+LOGDIR=${{SCRATCH}}/spark/event_logs
+mkdir -p ${{LOGDIR}}
 
 # The directory `/global/cscratch1/sd/<user>/tmpfiles` will be created if it
 # does not exist to store temporary files used by Spark.
-mkdir -p ${SCRATCH}/tmpfiles
+mkdir -p ${{SCRATCH}}/tmpfiles
+
+# Path to LSST miniconda installation at NERSC
+lSSTCONDA="/global/common/software/lsst/common/miniconda"
+
+# Since the default NERSC Apache Spark runs inside of Shifter, we use
+# a local version of it maintained by Julien Peloton (peloton@lal.in2p3.fr)
+SPARKPATH="/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7"
+
+# Here is the environment needed for Spark to run at NERSC.
+export SPARK_HOME="${{SPARKPATH}}"
+export PYSPARK_SUBMIT_ARGS="{} pyspark-shell"
+export PYTHONSTARTUP="${{SPARKPATH}}/python/pyspark/shell.py"
+
+# Make sure the version of py4j is correct.
+export DESCPYTHONPATH="${{SPARKPATH}}/python/lib/py4j-0.10.7-src.zip:${{SPARKPATH}}/python"
+
+# Should correspond to desc-python
+export PYSPARK_PYTHON="${{lSSTCONDA}}/current/bin/python"
+export PYSPARK_DRIVER_PYTHON="${{lSSTCONDA}}/current/bin/ipython3"
+
+# We use Java 8. Spark 2+ does not work with Java 7 and earlier versions.
+export JAVA_HOME="/opt/java/jdk1.8.0_51"
 
 # desc-python activation script
-source /global/common/software/lsst/common/miniconda/kernels/python.sh
-    """
+source ${{lSSTCONDA}}/kernels/python.sh
+    """.format(pyspark_args)
 
     with open(filename, 'w') as f:
         print(startup, file=f)
@@ -82,11 +103,6 @@ def create_desc_kernel(path, startupname, kernelname, pyspark_args):
         and start the cluster. See `create_startup_file`.
     kernelname : str
         Name of the kernel (will be displayed on the UI).
-    pyspark_args: str
-        Extra arguments to pass to pyspark. Typically:
-        --master local[n] --packages <> --jars <>
-        See https://spark.apache.org/docs/latest/submitting-applications.html
-        for more information.
     """
     # Kernel path + name
     filename = os.path.join(path, 'kernel.json')
@@ -99,17 +115,8 @@ def create_desc_kernel(path, startupname, kernelname, pyspark_args):
     "{}",
     "-f",
     "{{connection_file}}"],
-  "env": {{
-    "SPARK_HOME": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7",
-    "PYSPARK_SUBMIT_ARGS": "{} pyspark-shell",
-    "PYTHONSTARTUP": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python/pyspark/shell.py",
-    "DESCPYTHONPATH": "/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python/lib/py4j-0.10.7-src.zip:/global/homes/p/peloton/myspark/spark-2.3.2-bin-hadoop2.7/python",
-    "PYSPARK_PYTHON": "/global/common/software/lsst/common/miniconda/current/bin/python",
-    "PYSPARK_DRIVER_PYTHON": "/global/common/software/lsst/common/miniconda/current/bin/ipython3",
-    "JAVA_HOME": "/opt/java/jdk1.8.0_51"
- }}
 }}
-    """.format(kernelname, startupname, pyspark_args)
+    """.format(kernelname, startupname)
 
     with open(filename, 'w') as f:
         print(kernel, file=f)
@@ -179,9 +186,8 @@ if __name__ == "__main__":
     safe_mkdir(path, verbose=True)
 
     valid = True
-    startup_fn = create_desc_startup_file(path)
+    startup_fn = create_desc_startup_file(path, args.pyspark_args)
 
     # Create the kernel
-    create_desc_kernel(
-        path, startup_fn, args.kernelname, args.pyspark_args)
+    create_desc_kernel(path, startup_fn, args.kernelname)
     print("Kernel stored at {}".format(path))

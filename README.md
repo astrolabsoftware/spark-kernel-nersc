@@ -42,7 +42,7 @@ Note that he directory `/global/cscratch1/sd/<user>/tmpfiles` will be created to
 
 ### Custom shifter images (recommended for experienced users)
 
-For Spark version 2.3.0+, Spark ran inside of [Shifter](http://www.nersc.gov/research-and-development/user-defined-images/) (Docker for HPC). Since you are inside an image,
+For Spark version 2.3.0+, Spark ran inside of [Shifter](https://www.nersc.gov/research-and-development/user-defined-images/) (Docker for HPC). Since you are inside an image,
 you do not have automatically access to your user-defined environment.
 Therefore you might want to create your Spark shifter image, based on the one NERSC
 provides, but with additional packages you need installed.
